@@ -39,6 +39,18 @@ void setPixelColor(GLint x, GLint y, Color color) {
 	glFlush();
 }
 
+
+int V = 0;
+
+struct Vertex
+{
+	int x;
+	int y;	
+};
+
+Vertex vertices[10];
+
+
 void floodFill(GLint x, GLint y, Color oldColor, Color newColor) {
 	Color color;
 	color = getPixelColor(x, y);
@@ -80,9 +92,39 @@ void LineWithDDA(int x0, int y0, int x1, int y1)
 }
 
 
+void drawCircle(int cx, int cy, int r)
+{
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < 360; i++)
+	{
+		float radians=i*3.14159/180;
+		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r);
+		glVertex2f(cx+cos(radians)*r+1, cy+sin(radians)*r);
+		glVertex2f(cx+cos(radians)*r-1, cy+sin(radians)*r);
+		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r+1);
+		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r-1);
+	}
+	glEnd();
+}
+
+
+void drawEllipse(int cx, int cy, int rx, int ry)
+{
+	glBegin(GL_LINE_LOOP);
+	
+	  for(int i=0;i<360;i++)
+	  {
+	     float rad = i*3.14159/180;
+	     glVertex2f(cx+cos(rad)*rx, cy+sin(rad)*ry);
+	  }
+	
+	  glEnd();
+}
 
 int clickNo = 1;
 int tx1 = 0, ty1 = 0;
+
+int dc=0, dp=0;
 
 void onMouseClick(int button, int state, int x, int y)
 {
@@ -90,17 +132,11 @@ void onMouseClick(int button, int state, int x, int y)
 	switch (button) {
 	case GLUT_LEFT_BUTTON:
 	    printf(" LEFT ");
-	    if (state == GLUT_DOWN) {
-	        if (clickNo == 1) {
-	            tx1 = x;
-	            ty1 = 500 - y;
-	            clickNo = 2;
-	        }
-	        else if (clickNo == 2) {
-	            int yc = 500 - y; 
-	            LineWithDDA(tx1, ty1, x, yc);
-	            clickNo=1;
-	        }
+	   if (state == GLUT_DOWN) {
+	    	vertices[V].x=x;
+	    	vertices[V].y=500-y;
+	    	setPixelColor(x, 500-y, newColor);
+	    	V++;
 	    }
 
 
@@ -123,6 +159,40 @@ void onMouseClick(int button, int state, int x, int y)
 	fflush(stdout); 
 
 }
+
+
+void drawPolygon()
+{
+	for (int i = 0; i < V; i++)
+	{
+		LineWithDDA(vertices[i].x, vertices[i].y, vertices[(i+1)%V].x, vertices[(i+1)%V].y);
+	}
+}
+
+
+void key(unsigned char key_t, int x, int y){
+    if(key_t=='d'){
+            drawPolygon();
+        }
+
+        if(key_t=='c'){
+        	int dx=vertices[1].x-vertices[0].x;
+        	int dy=vertices[1].y-vertices[0].y;
+            drawCircle(vertices[0].x, vertices[0].y, sqrt(dx*dx+dy*dy));
+        }
+
+
+
+        if(key_t=='e'){
+        	int rx=vertices[1].x-vertices[0].x;
+        	int ry=vertices[1].y-vertices[0].y;
+            drawEllipse(vertices[0].x, vertices[0].y, rx, ry);
+        }
+
+}
+
+
+
 void display(void) {
 	Point pt = {320, 240};
 	GLfloat radius = 50;
@@ -143,6 +213,8 @@ int main(int argc, char** argv)
 	init();
 	glutDisplayFunc(display);
 	glutMouseFunc(onMouseClick);
+
+	glutKeyboardFunc(key);
 	glutMainLoop();
 	return 0;
 }
