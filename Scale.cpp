@@ -88,6 +88,45 @@ void drawPolygon()
 	}
 }
 
+
+
+
+
+
+// void drawCircle(int cx, int cy, int r)
+// {
+// 	glBegin(GL_LINE_LOOP);
+// 	for (int i = 0; i < 360; i++)
+// 	{
+// 		float radians=i*3.14159/180;
+// 		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r);
+// 		glVertex2f(cx+cos(radians)*r+1, cy+sin(radians)*r);
+// 		glVertex2f(cx+cos(radians)*r-1, cy+sin(radians)*r);
+// 		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r+1);
+// 		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r-1);
+// 	}
+// 	glEnd();
+// 	glutSwapBuffers();
+// }
+
+
+void drawEllipse(int cx, int cy, int rx, int ry)
+{
+	glBegin(GL_LINE_LOOP);
+	
+	  for(int i=0;i<360;i++)
+	  {
+	     float rad = i*3.14159/180;
+	     glVertex2f(cx+cos(rad)*rx, cy+sin(rad)*ry);
+	  }
+	
+	  glEnd();
+	  glutSwapBuffers();
+}
+
+
+
+
 float sx=1;
 float sy=1;
 
@@ -118,36 +157,103 @@ void scale() {
 	drawPolygon();
 }
 
+
+float rx;
+float ry;
+
+
+void scaleEllipse() {
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	drawEllipse(vertices[0].x, vertices[0].y, rx, ry);
+}
+
+int SE=0;
+
+
 void key(unsigned char key_t, int x, int y){
     if(key_t=='d'){
         drawPolygon();
     }
+
+    // if(key_t=='c'){
+    // 	int dx=vertices[1].x-vertices[0].x;
+    // 	int dy=vertices[1].y-vertices[0].y;
+    //     drawCircle(vertices[0].x, vertices[0].y, sqrt(dx*dx+dy*dy));
+    // }
+
+
+
+    if(key_t=='e'){
+    	SE=1;
+    	rx=vertices[1].x-vertices[0].x;
+    	ry=vertices[1].y-vertices[0].y;
+        drawEllipse(vertices[0].x, vertices[0].y, rx, ry);
+    }
+
+
     else if (key_t=='8')
     {
     	sx=1;
     	sy+=0.2;
-    	scale();
+    	
+    	ry+=2;
+    	if (SE==1)
+    	{
+    		scaleEllipse();
+    	}
+    	else
+    	{
+    		scale();    		
+    	}
     	sy=1;
     }
     else if (key_t=='2')
     {
     	sx=1;
     	sy-=0.2;
-    	scale();
+    	
+    	ry-=2;
+    	if (SE==1)
+    	{
+    		scaleEllipse();
+    	}
+    	else
+    	{
+    		scale();    		
+    	}    	
     	sy=1;
     }
     else if (key_t=='6')
     {
     	sy=1;
     	sx+=0.2;
-    	scale();
+
+    	rx+=2;
+    	if (SE==1)
+    	{
+    		scaleEllipse();
+    	}
+    	else
+    	{
+    		scale();    		
+    	}    	
     	sx=1;
     }
     else if (key_t=='4')
     {
     	sy=1;
     	sx-=0.2;
-    	scale();
+
+    	rx-=2;
+    	if (SE==1)
+    	{
+    		scaleEllipse();
+    	}
+    	else
+    	{
+    		scale();    		
+    	}    	
     	sx=1;
     }
 
