@@ -110,6 +110,8 @@ void drawCircle(int cx, int cy, int r)
 		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r-1);
 	}
 	glEnd();
+    glutSwapBuffers();
+
 }
 
 
@@ -124,12 +126,12 @@ void drawEllipse(int cx, int cy, int rx, int ry)
 	  }
 	
 	  glEnd();
+    glutSwapBuffers();
+
 }
 
-int clickNo = 1;
-int tx1 = 0, ty1 = 0;
 
-int dc=0, dp=0;
+
 
 void onMouseClick(int button, int state, int x, int y)
 {
@@ -214,7 +216,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(200, 200);
-	glutCreateWindow("Flood Fill");
+	glutCreateWindow("Boundary Fill");
 	init();
 	glutDisplayFunc(display);
 	glutMouseFunc(onMouseClick);

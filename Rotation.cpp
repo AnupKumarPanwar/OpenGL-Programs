@@ -181,9 +181,7 @@ void onMouseClick(int button, int state, int x, int y)
 
 	    case GLUT_RIGHT_BUTTON:
 	    printf("RIGHT");
-	    // glClear(GL_COLOR_BUFFER_BIT);
-
-	    // scale(x, 500-y);
+	    
 	    cX=x;
 	    cY=500-y;
 
@@ -211,7 +209,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(200, 200);
-	glutCreateWindow("Flood Fill");
+	glutCreateWindow("Rotation");
 	init();
 	glutDisplayFunc(display);
 	glutMouseFunc(onMouseClick);

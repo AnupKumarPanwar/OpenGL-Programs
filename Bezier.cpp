@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <GL/glut.h>
-#include <iostream>
-
-using namespace std;
 
 struct Point {
 	GLint x;
@@ -29,7 +26,8 @@ struct Vertex
 };
 
 Vertex vertices[10];
-Vertex tempVertices[10];
+
+int selectedCP=0;
 
 
 
@@ -52,6 +50,20 @@ void setPixelColor(GLint x, GLint y, Color color) {
 	// glFlush();
 }
 
+
+
+void drawCircle(int cx, int cy, int r)
+{
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < 360; i++)
+	{
+		float radians=i*3.14159/180;
+		glVertex2f(cx+cos(radians)*r, cy+sin(radians)*r);
+	}
+	glEnd();
+    glutSwapBuffers();
+
+}
 
 
 
@@ -80,94 +92,61 @@ void LineWithDDA(int x0, int y0, int x1, int y1)
 }
 
 
-
-void drawPolygon()
+int factorial(int n)
 {
-	for (int i = 0; i < V; i++)
-	{
-		LineWithDDA(vertices[i].x, vertices[i].y, vertices[(i+1)%V].x, vertices[(i+1)%V].y);
-	}
+    if (n<=1)
+        return(1);
+    else
+        n=n*factorial(n-1);
+    return n;
 }
 
 
-void drawTempPolygon()
+float binomial_coff(float n,float k)
 {
-	for (int i = 0; i < V; i++)
+    float ans;
+    ans = factorial(n) / (factorial(k)*factorial(n-k));
+    return ans;
+}
+
+
+
+
+Vertex drawBezier(double t) {
+    Vertex P;
+    P.x = 0;P.y=0;
+    for (int i = 0; i<V; i++)
+        {
+            P.x = P.x + binomial_coff((float)(V - 1), (float)i) * pow(t, (double)i) * pow((1 - t), (V - 1 - i)) * vertices[i].x;
+            P.y = P.y + binomial_coff((float)(V - 1), (float)i) * pow(t, (double)i) * pow((1 - t), (V - 1 - i)) * vertices[i].y;
+        }
+
+    return P;
+}
+
+
+
+
+
+void drawCurve()
+{
+	Vertex p1 = vertices[0];
+	for(double t = 0.0;t <= 1.0; t += 0.01)
 	{
-		LineWithDDA(tempVertices[i].x, tempVertices[i].y, tempVertices[(i+1)%V].x, tempVertices[(i+1)%V].y);
+	    Vertex p2 = drawBezier(t);
+	    LineWithDDA(p1.x, p1.y, p2.x, p2.y);
+	    p1 = p2;
 	}
 }
 
 
-int lineDrawn=0;
-int l0x, l0y, l1x, l1y;
 
-void Reflect() {
-
-
-	for (int i = 0; i < V; i++)
-	{
-		vertices[i].x-=l0x;
-		vertices[i].y-=l0y;	
-	}
-
-	int dx=l1x-l0x;
-	int dy=l1y-l0y;
-
-	float hyp=sqrt(dy*dy+dx*dx);
-	float cosA=float(dx/hyp);
-	float sinA=float(dy/hyp);
-
-	for (int i = 0; i < V; i++)
-	{
-		int tx=vertices[i].x;
-		int ty=vertices[i].y;
-
-		tempVertices[i].x=tx*cosA+ty*sinA;
-		tempVertices[i].y=-tx*sinA+ty*cosA;			
-	}
-
-
-	for (int i = 0; i < V; i++)
-	{		
-		tempVertices[i].y*=-1;		
-	}
-
-
-	for (int i = 0; i < V; i++)
-	{
-		int tx=tempVertices[i].x;
-		int ty=tempVertices[i].y;
-
-		tempVertices[i].x=tx*cosA-ty*sinA;
-		tempVertices[i].y=tx*sinA+ty*cosA;			
-	}
-
-
-	for (int i = 0; i < V; i++)
-	{
-		tempVertices[i].x+=l0x;
-		tempVertices[i].y+=l0y;	
-		cout<<vertices[i].x<<"\n"<<vertices[i].y<<"\n";
-	}
-
-	for (int i = 0; i < V; i++)
-	{
-		vertices[i].x+=l0x;
-		vertices[i].y+=l0y;	
-		cout<<vertices[i].x<<"\n"<<vertices[i].y<<"\n";
-	}
-
-	// glClear(GL_COLOR_BUFFER_BIT);
-	drawTempPolygon();
-}
 
 void key(unsigned char key_t, int x, int y){
     if(key_t=='d'){
-        drawPolygon();
-    }	
+        drawCurve();
+    }
 }
-
 
 
 
@@ -182,7 +161,10 @@ void onMouseClick(int button, int state, int x, int y)
 	    	vertices[V].x=x;
 	    	vertices[V].y=500-y;
 	    	setPixelColor(x, 500-y, newColor);
+	    	drawCircle(x, 500-y, 5);
 	    	V++;
+    		glutSwapBuffers();
+
 	    }
 
 
@@ -194,27 +176,28 @@ void onMouseClick(int button, int state, int x, int y)
 
 	    case GLUT_RIGHT_BUTTON:
 	    printf("RIGHT");
+	    glClear(GL_COLOR_BUFFER_BIT);
 
-	    if (state == GLUT_DOWN) {
-	    		if (lineDrawn==1)
-	    		{
-	    			l1x=x;
-	    			l1y=500-y;
-	    			LineWithDDA(l0x, l0y, l1x, l1y);
-	    			Reflect();
-	    		}
-	    		else
-	    		{
-	    			l0x=x;
-	    			l0y=500-y;
-	    			lineDrawn=1;
-	    		}
-	    	}
+	    	    if (state == GLUT_DOWN) {
+	    	    	
+	    	    	for (int i = 0; i < V; i++)
+	    	    	{
+	    	    		float dx=vertices[i].x-x;
+	    	    		float dy=vertices[i].y-(500-y);
 
-    	else if (state == GLUT_UP)
-    	{
-    	    printf("UP\n");
-    	}
+	    	    		float dr=sqrt(dx*dx+dy*dy);
+
+	    	    		if (dr<5.0)
+	    	    		{
+	    	    			selectedCP=i;
+	    	    			break;
+	    	    		}
+
+	    	    	}
+
+	    	    }
+
+	    // translate(x, 500-y);
 
 	    break;
 
@@ -224,6 +207,31 @@ void onMouseClick(int button, int state, int x, int y)
 	fflush(stdout); 
 
 }
+
+
+void cp_drag(GLint x, GLint y){
+
+	vertices[selectedCP].x=x;
+	vertices[selectedCP].y=500-y;
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	for (int i = 0; i < V; i++)
+	{
+		x=vertices[i].x;
+    	y=vertices[i].y;
+    	setPixelColor(x, y, newColor);
+    	drawCircle(x, y, 5);
+	}
+	
+	glutSwapBuffers();
+
+	drawCurve();
+
+}
+
+
+
 void display(void) {
 	Point pt = {320, 240};
 	GLfloat radius = 50;
@@ -240,10 +248,11 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(200, 200);
-	glutCreateWindow("Reflection Fill");
+	glutCreateWindow("Flood Fill");
 	init();
 	glutDisplayFunc(display);
 	glutMouseFunc(onMouseClick);
+	glutMotionFunc(cp_drag);
 	glutKeyboardFunc(key);
 	glutMainLoop();
 	return 0;
